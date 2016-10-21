@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kazkazi.webmethods</groupId>
 	<artifactId>ummer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>ummer</name>
 
 	<properties>
@@ -80,6 +80,7 @@
 						<configuration>
 							<tasks>
 								<mkdir dir="${project.basedir}/target/appassembler/umLib" />
+								<zip destfile="${project.basedir}/target/ummer-${project.version}.zip" basedir="${project.basedir}/target/appassembler" />
 							</tasks>
 						</configuration>
 						<goals>

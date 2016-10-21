@@ -8,10 +8,11 @@
 		</encoder>
 	</appender>
 
-	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover -->
-			<fileNamePattern>./ummer.%d{yyyy-MM-dd}.log
+			<fileNamePattern>./logs/ummer.%d{yyyy-MM-dd}.log
 			</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
@@ -22,12 +23,13 @@
 	</appender>
 
 
-	<logger name="de.kazkazi.webmethods" level="INFO" additivity="true">
+	<logger name="de.kazkazi.webmethods" level="INFO" additivity="false">
 		<appender-ref ref="FILE" />
 	</logger>
-	
-	<logger name="de.kazkazi.webmethods" level="WARN" additivity="true">
+
+	<root level="WARN">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
-	</logger>
+	</root>
+
 </configuration>

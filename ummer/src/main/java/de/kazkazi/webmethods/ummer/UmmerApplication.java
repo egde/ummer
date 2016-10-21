@@ -80,8 +80,8 @@ public class UmmerApplication {
 
 	private static void handleListQueues(UniversalMessagingInterface um, CommandLine line, nSession session)
 			throws ActionNotPossibleException {
-		logger.info("Listing Queues");
 		if (line.hasOption(LIST_QUEUES_SHORT_OPTION) || line.hasOption(LIST_QUEUES_LONG_OPTION)) {
+			logger.info("Listing Queues");
 			List<nQueue> queues = um.getAllQueues(session);
 			for (nQueue queue : queues) {
 				System.out.println(queue.getName());
@@ -92,8 +92,8 @@ public class UmmerApplication {
 	
 	private static void handleListTopics(UniversalMessagingInterface um, CommandLine line, nSession session)
 			throws ActionNotPossibleException {
-		logger.info("Listing topics");
 		if (line.hasOption(LIST_TOPICS_SHORT_OPTION) || line.hasOption(LIST_TOPICS_LONG_OPTION)) {
+			logger.info("Listing topics");
 			List<nChannel> topics = um.getAllTopics(session);
 			for (nChannel topic : topics) {
 				System.out.println(topic.getName());

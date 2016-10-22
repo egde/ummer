@@ -1,0 +1,6 @@
+{
+  "name": "ummer",
+  "tagline": "ummer is a little command line tool for browsing webMethods Universal Messaging Server.",
+  "body": "### Welcome to the ummer project page\r\nummer is a little tool for dealing on the [webMethods Universal Messaging (UM)](http://www.terracotta.org/products/universal-messaging)  on the command line.\r\n\r\nThe client libraries of the UM are proprietary. Hence they are not included in the release.\r\n\r\n### Prerequisites\r\nYou do need a Java JRE 8. Get it from [here](https://www.java.com/en/download/).\r\n\r\n### Installation\r\n1. Download the zip\r\n2. Extract it\r\n3. Copy from <path to UM>/UniversalMessaging/lib the files\r\n    * nAdminAPI.jar\r\n    * nClient.jar\r\n    * nP2P.jar\r\n    into the folder <path to ummer>/umLib\r\n4. Done!\r\n\r\n### Usage\r\nFrom the command line just hit `<path to ummer>/bin/ummer` and the usage help list show up.\r\n\r\n#### Show all queues\r\n`./ummer -r nsp://127.0.0.1 --listQueues`\r\n```\r\n/de/kazkazi/me\r\n/de/kazkazi/Simple\r\n/de/kazkazi/test\r\n```\r\n\r\n#### Show all topics\r\n`ummer -r nsp://127.0.0.1 --listTopics`\r\n```\r\n/de/kazkazi/aChannel\r\n```\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}

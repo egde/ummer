@@ -9,15 +9,23 @@ import org.slf4j.LoggerFactory;
 
 import com.pcbsys.nirvana.client.nChannel;
 import com.pcbsys.nirvana.client.nChannelAttributes;
+import com.pcbsys.nirvana.client.nChannelNotFoundException;
 import com.pcbsys.nirvana.client.nConsumeEvent;
 import com.pcbsys.nirvana.client.nIllegalArgumentException;
+import com.pcbsys.nirvana.client.nIllegalChannelMode;
 import com.pcbsys.nirvana.client.nQueue;
 import com.pcbsys.nirvana.client.nQueuePeekContext;
 import com.pcbsys.nirvana.client.nQueueReader;
 import com.pcbsys.nirvana.client.nQueueReaderContext;
+import com.pcbsys.nirvana.client.nRequestTimedOutException;
+import com.pcbsys.nirvana.client.nSecurityException;
 import com.pcbsys.nirvana.client.nSession;
 import com.pcbsys.nirvana.client.nSessionAttributes;
 import com.pcbsys.nirvana.client.nSessionFactory;
+import com.pcbsys.nirvana.client.nSessionNotConnectedException;
+import com.pcbsys.nirvana.client.nSessionPausedException;
+import com.pcbsys.nirvana.client.nUnexpectedResponseException;
+import com.pcbsys.nirvana.client.nUnknownRemoteRealmException;
 
 import de.kazkazi.webmethods.ummer.intf.backend.UniversalMessagingInterface;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.ActionNotPossibleException;
@@ -97,7 +105,7 @@ public class UniversalMessagingServer implements UniversalMessagingInterface {
 		List<nConsumeEvent> eventMessageList = new ArrayList<nConsumeEvent>();
 		try {
 			nQueueReader queueReader = queue.createReader(new nQueueReaderContext());
-			nQueuePeekContext context = nQueueReader.createContext();
+			nQueuePeekContext context = nQueueReader.createContext(10);
 			nConsumeEvent[] eventMessages = queueReader.peek(context);
 			if (eventMessages != null) {
 				eventMessageList = Arrays.asList(eventMessages);
@@ -109,4 +117,16 @@ public class UniversalMessagingServer implements UniversalMessagingInterface {
 		return eventMessageList;
 	}
 
+	@Override
+	public nQueue getQueue(nSession session, String queueName) throws ActionNotPossibleException {
+		nQueue queue = null;
+		try {
+			nChannelAttributes channelAttributes = new nChannelAttributes();
+			channelAttributes.setName(queueName);
+			queue = session.findQueue(channelAttributes);
+		} catch(nIllegalArgumentException | nChannelNotFoundException | nSessionPausedException | nUnknownRemoteRealmException | nSecurityException | nSessionNotConnectedException | nUnexpectedResponseException | nRequestTimedOutException | nIllegalChannelMode e) {
+			throw new ActionNotPossibleException(e);
+		}
+		return queue;
+	}
 }

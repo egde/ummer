@@ -18,8 +18,9 @@ public interface UniversalMessagingInterface {
 	public boolean connect(nSession session) throws SessionCreationException;
 	public boolean disconnect(nSession session);
 	
+	public nQueue getQueue(nSession session, String queueName) throws ActionNotPossibleException;
+	
 	public List<nQueue> getAllQueues(nSession session) throws ActionNotPossibleException;
 	public List<nChannel> getAllTopics(nSession session)  throws ActionNotPossibleException;
-	public List<nConsumeEvent> getAllMessagesFromQueue(nQueue queue) throws CannotReadFromQueueException;
-	
+	public List<nConsumeEvent> getAllMessagesFromQueue(nQueue queue) throws CannotReadFromQueueException;	
 }

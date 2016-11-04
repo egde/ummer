@@ -125,7 +125,7 @@ public class UmmerApplication {
 				messages = um.getAllMessagesFromQueue(queue);
 			} catch (ActionNotPossibleException e) {
 				logger.error(String.format("Could not get the queue %s", queueName), e);
-			} catch (CannotReadFromQueueException e) {
+			} catch (CannotReadFromQueueException e) 		{
 				logger.error(String.format("Could not read from queue %s", queueName, e));
 			}
 			

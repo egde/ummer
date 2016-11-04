@@ -16,12 +16,14 @@ import org.slf4j.LoggerFactory;
 
 import com.pcbsys.nirvana.client.nChannel;
 import com.pcbsys.nirvana.client.nConsumeEvent;
+import com.pcbsys.nirvana.client.nEventListener;
 import com.pcbsys.nirvana.client.nQueue;
 import com.pcbsys.nirvana.client.nSession;
 
 import de.kazkazi.webmethods.ummer.impl.backend.UniversalMessagingServer;
 import de.kazkazi.webmethods.ummer.intf.backend.UniversalMessagingInterface;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.ActionNotPossibleException;
+import de.kazkazi.webmethods.ummer.intf.backend.exceptions.CannotReadFromChannelException;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.CannotReadFromQueueException;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.SessionCreationException;
 
@@ -35,6 +37,8 @@ public class UmmerApplication {
 	private static final String LIST_QUEUES_LONG_OPTION = "listQueues";
 	private static final String RNAME_SHORT_OPTION = "r";
 	private static final String RNAME_LONG_OPTION = "RNAME";
+	private static final String TAIL_TOPIC_SHORT_OPTION = "tailTopic";
+	private static final String TAIL_TOPIC_LONG_OPTION = "tailt";
 	private static Options options;
 	private static Logger logger = LoggerFactory.getLogger(UmmerApplication.class);
 
@@ -62,9 +66,10 @@ public class UmmerApplication {
 				um.connect(session);
 				logger.info("Session connected");
 				
-				handleListQueues(um, line, session);
-				handleListTopics(um, line, session);
+				handleListQueues(line, um, session);
+				handleListTopics(line, um, session);
 				handleBrowseQueue(line, um, session);
+				handleTailTopic(line, um, session);
 				
 				um.disconnect(session);
 				logger.info("Session disconnected");
@@ -83,7 +88,7 @@ public class UmmerApplication {
 		}		
 	}
 
-	private static void handleListQueues(UniversalMessagingInterface um, CommandLine line, nSession session)
+	private static void handleListQueues(CommandLine line, UniversalMessagingInterface um, nSession session)
 			throws ActionNotPossibleException {
 		if (line.hasOption(LIST_QUEUES_SHORT_OPTION) || line.hasOption(LIST_QUEUES_LONG_OPTION)) {
 			logger.info("Listing Queues");
@@ -95,7 +100,7 @@ public class UmmerApplication {
 		}
 	}
 	
-	private static void handleListTopics(UniversalMessagingInterface um, CommandLine line, nSession session)
+	private static void handleListTopics(CommandLine line, UniversalMessagingInterface um, nSession session)
 			throws ActionNotPossibleException {
 		if (line.hasOption(LIST_TOPICS_SHORT_OPTION) || line.hasOption(LIST_TOPICS_LONG_OPTION)) {
 			logger.info("Listing topics");
@@ -125,15 +130,7 @@ public class UmmerApplication {
 			}
 			
 			for (nConsumeEvent message : messages) {
-				String data = (new String(message.getEventData()));
-				String subData = data.substring(0, data.length() < 100 ? data.length(): 100);
-				subData = subData.replaceAll("\n", " ");
-				String text = String.format(
-						"%d\t%tc\t%s", 
-						message.getEventID(),
-						message.getTimestamp(),
-						subData
-						);
+				String text = summarizeMessage(message);
 				System.out.println(	text );
 				logger.info(text);
 			}
@@ -141,6 +138,46 @@ public class UmmerApplication {
 		
 	}
 
+	private static String summarizeMessage(nConsumeEvent message) {
+		String data = (new String(message.getEventData()));
+		String subData = data.substring(0, data.length() < 100 ? data.length(): 100);
+		subData = subData.replaceAll("\n", " ");
+		String text = String.format(
+				"%d\t%tc\t%s", 
+				message.getEventID(),
+				message.getTimestamp(),
+				subData
+				);
+		return text;
+	}
+
+	private static void handleTailTopic(CommandLine line, UniversalMessagingInterface um, nSession session) {
+		if (line.hasOption(TAIL_TOPIC_SHORT_OPTION) || line.hasOption(TAIL_TOPIC_LONG_OPTION)) {
+			String topicName = line.getOptionValue(TAIL_TOPIC_SHORT_OPTION);			
+			if (StringUtils.isEmpty(topicName)) {
+				topicName = line.getOptionValue(TAIL_TOPIC_LONG_OPTION);
+			}
+			
+			logger.info(String.format("Tail on topic %s", topicName));
+			try {
+				nChannel topic = um.getChannel(session, topicName);
+				nEventListener eventListener = new nEventListener() {
+					
+					@Override
+					public void go(nConsumeEvent message) {
+						String text = summarizeMessage(message);
+						System.out.println(	text );
+						logger.info(text);
+					}
+				};
+				um.tailMessagesFromTopic(topic, eventListener);
+			} catch( ActionNotPossibleException e) {
+				logger.error(String.format("Cannot find topic %s", topicName), e);
+			} catch (CannotReadFromChannelException e) {
+				logger.error(String.format("Cannot read from topic %s", topicName), e);
+			}
+		}
+	}
 	private static void createCommandLineOptions() {
 		options = new Options();
 		Option rname = new Option(RNAME_SHORT_OPTION, RNAME_LONG_OPTION, true, "Provide the UM Realm to connect to.");
@@ -149,8 +186,10 @@ public class UmmerApplication {
 		options.addOption(optShowAllQueues);
 		Option optShowAllTopics = new Option(LIST_TOPICS_SHORT_OPTION, LIST_TOPICS_LONG_OPTION, false, "Lists all topics");
 		options.addOption(optShowAllTopics);
-		Option optTailQueue = new Option(BROWSE_QUEUE_SHORT_OPTION, BROWSE_QUEUE_LONG_OPTION, true, "Tail on a queue");
-		options.addOption(optTailQueue);
+		Option optBrowseQueue = new Option(BROWSE_QUEUE_SHORT_OPTION, BROWSE_QUEUE_LONG_OPTION, true, "Browse on a queue");
+		options.addOption(optBrowseQueue);
+		Option optTailTopic = new Option(TAIL_TOPIC_SHORT_OPTION, TAIL_TOPIC_LONG_OPTION, true, "Tail on a topic");
+		options.addOption(optTailTopic);
 	}
 
 	private static void printUsage() {

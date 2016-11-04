@@ -1,5 +1,7 @@
 package de.kazkazi.webmethods.ummer.impl.backend;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pcbsys.nirvana.client.nChannel;
+import com.pcbsys.nirvana.client.nChannelAlreadySubscribedException;
 import com.pcbsys.nirvana.client.nChannelAttributes;
 import com.pcbsys.nirvana.client.nChannelNotFoundException;
 import com.pcbsys.nirvana.client.nConsumeEvent;
+import com.pcbsys.nirvana.client.nEventListener;
 import com.pcbsys.nirvana.client.nIllegalArgumentException;
 import com.pcbsys.nirvana.client.nIllegalChannelMode;
 import com.pcbsys.nirvana.client.nQueue;
@@ -29,6 +33,7 @@ import com.pcbsys.nirvana.client.nUnknownRemoteRealmException;
 
 import de.kazkazi.webmethods.ummer.intf.backend.UniversalMessagingInterface;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.ActionNotPossibleException;
+import de.kazkazi.webmethods.ummer.intf.backend.exceptions.CannotReadFromChannelException;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.CannotReadFromQueueException;
 import de.kazkazi.webmethods.ummer.intf.backend.exceptions.SessionCreationException;
 
@@ -128,5 +133,34 @@ public class UniversalMessagingServer implements UniversalMessagingInterface {
 			throw new ActionNotPossibleException(e);
 		}
 		return queue;
+	}
+	
+	@Override
+	public nChannel getChannel(nSession session, String channelName) throws ActionNotPossibleException {
+		nChannel channel = null;
+		try {
+			nChannelAttributes channelAttributes = new nChannelAttributes();
+			channelAttributes.setName(channelName);
+			channel = session.findChannel(channelAttributes);
+		} catch(nIllegalArgumentException | nChannelNotFoundException | nSessionPausedException | nUnknownRemoteRealmException | nSecurityException | nSessionNotConnectedException | nUnexpectedResponseException | nRequestTimedOutException | nIllegalChannelMode e) {
+			throw new ActionNotPossibleException(e);
+		}
+		return channel;
+	}
+
+	@Override
+	public void tailMessagesFromTopic(nChannel channel, nEventListener eventListener) throws CannotReadFromChannelException {
+		try {
+			channel.addSubscriber(eventListener);
+			InputStream inputStream = System.in;
+			System.out.println("Press a key to stop");
+			if (inputStream.read() > 0) {
+				channel.removeSubscriber(eventListener);
+			}
+		} catch (nIllegalArgumentException | nSecurityException | nChannelNotFoundException
+				| nChannelAlreadySubscribedException | nSessionNotConnectedException | nRequestTimedOutException
+				| nUnexpectedResponseException | nSessionPausedException | IOException e) {
+			throw new CannotReadFromChannelException(e);
+		}
 	}
 }

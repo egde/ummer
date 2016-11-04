@@ -6,6 +6,8 @@ Features
 --------
 * List Queues
 * List Topics
+* Browse queue for messages
+* Tail topic for messages
 
 Installation
 ------------
